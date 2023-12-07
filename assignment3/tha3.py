@@ -2,6 +2,7 @@
 """
 
 import numpy as np
+import pandas as pd
 from numpy import ndarray, float32
 
 class Layer():
@@ -13,8 +14,8 @@ class Layer():
             shape `<tuple[int]>`: shape of the weights/biases
         """
 
-        self.weights = ndarray(shape=shape, dtype=float32)
-        self.biases = ndarray(shape=shape, dtype=float32)
+        self.weights:ndarray[float32] = np.zeros(shape=shape, dtype=float32)
+        self.biases:ndarray[float32] = np.zeros(shape=(1, shape[0]), dtype=float32)
 
     def compute(self, x:ndarray[float32]) -> ndarray[float32]:
         """Calculating `wx + b`
@@ -23,8 +24,7 @@ class Layer():
             x `<ndarray[float32]>`: input data
         """
 
-        # TODO we need to transpose here. how to know to transpose weights or x?
-        return np.add(np.multiply(self.weights, x), self.biases)
+        return np.add(np.dot(x, np.transpose(self.weights)), self.biases)
 
     def sigmoid(self, x:ndarray[float32]) -> ndarray[float32]:
         """Putting the output of `Layer.compute()` into the Sigmoid activation function.
@@ -41,9 +41,9 @@ class Layer():
 class MLP():
     """Class representing an MLP with the preconfiguration from the assignment."""
     def __init__(self) -> None:
-        self.h0 = Layer((10,2))
-        self.h1 = Layer((10,10))
-        self.o = Layer((2,10))
+        self.h0:Layer = Layer((10,2))
+        self.h1:Layer = Layer((10,10))
+        self.o:Layer = Layer((2,10))
 
     def feed_forward(self, x:ndarray[float32]) -> float32:
         """One cycle of feed forward.
@@ -54,16 +54,16 @@ class MLP():
         Returns:
             y_pred `<float32>`: Predicted y value."""
         # Layer 1
-        net = self.h0.compute(x)
-        net = self.h0.sigmoid(net)
+        net:ndarray[float32] = self.h0.compute(x)
+        net:ndarray[float32] = self.h0.sigmoid(net)
         # Layer 2
-        net = self.h1.compute(net)
-        net = self.h1.sigmoid(net)
+        net:ndarray[float32] = self.h1.compute(net)
+        net:ndarray[float32] = self.h1.sigmoid(net)
         # Output layer
-        net = self.o.compute(net)
-        net = self.o.sigmoid(net)
+        net:ndarray[float32] = self.o.compute(net)
+        net:ndarray[float32] = self.o.sigmoid(net)
 
-        return net
+        return net[0]
 
     # TODO
     def back_propagation(self) -> None:
@@ -72,3 +72,13 @@ class MLP():
         Args:
             e `<float32>`: error            
         """
+
+df:pd.DataFrame = pd.read_excel("THA3train.xlsx")
+mlp = MLP()
+for ind in df.index:
+    # input processing
+    inp = ndarray(shape=(1,2))
+    inp = np.array([df["X_0"][0],df["X_1"][0]])
+    # feed forward
+    y_pred = mlp.feed_forward(inp)
+    # back propagation TODO
