@@ -14,8 +14,8 @@ class Layer():
             shape `<tuple[int]>`: shape of the weights/biases
         """
 
-        self.weights:ndarray[float32] = np.zeros(shape=shape, dtype=float32)
-        self.biases:ndarray[float32] = np.zeros(shape=(1, shape[0]), dtype=float32)
+        self.weights:ndarray[float32] = np.random.rand(shape[0], shape[1])
+        self.biases:ndarray[float32] = np.random.rand(1, shape[0])
 
     def compute(self, x:ndarray[float32]) -> ndarray[float32]:
         """Calculating `wx + b`
@@ -45,7 +45,7 @@ class MLP():
         self.h1:Layer = Layer((10,10))
         self.o:Layer = Layer((2,10))
 
-    def feed_forward(self, x:ndarray[float32]) -> float32:
+    def feed_forward(self, x:ndarray[float32]) -> ndarray[float32]:
         """One cycle of feed forward.
         
         Args:
@@ -63,15 +63,22 @@ class MLP():
         net:ndarray[float32] = self.o.compute(net)
         net:ndarray[float32] = self.o.sigmoid(net)
 
-        return net[0]
+        return self.one_hot(net[0]) # net --> [[0.6 0.4]], so we index 0
 
-    # TODO
-    def back_propagation(self) -> None:
-        """One cycle of back propagation.
+    def one_hot(self, net:ndarray[float32]) -> ndarray[float32]:
+        """One hot encoding the return the strongest output neuron.
         
         Args:
-            e `<float32>`: error            
+            net `<ndarray[float32]>`: raw output of the MLP
         """
+        if net[0] > net[1]:
+            net[0] = 1
+            net[1] = 0
+        else:
+            net[0] = 0
+            net[1] = 1
+
+        return net
 
 df:pd.DataFrame = pd.read_excel("THA3train.xlsx")
 mlp = MLP()
@@ -81,4 +88,4 @@ for ind in df.index:
     inp = np.array([df["X_0"][0],df["X_1"][0]])
     # feed forward
     y_pred = mlp.feed_forward(inp)
-    # back propagation TODO
+    print(y_pred)
